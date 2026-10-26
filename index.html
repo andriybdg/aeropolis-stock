@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen Stok Unit - Aeropolis</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab-active { border-bottom: 3px solid #0284c7; color: #0284c7; font-weight: 600; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- TOP HEADER / NAVBAR -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-brand-600 text-white p-2 rounded-lg font-bold text-xl tracking-wider">
+                    <i class="fa-solid fa-building-circle-check"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight leading-tight">AEROPOLIS STOCK SYSTEM</h1>
+                    <p class="text-xs text-slate-400">Integrated Unit & Inventory Management</p>
+                </div>
+            </div>
+
+            <!-- AUTH & CONTACT INFO -->
+            <div class="flex flex-wrap items-center gap-3 text-xs sm:text-sm">
+                <!-- Admin Auth Button Status -->
+                <div id="authStatusContainer" class="flex items-center">
+                    <!-- Dynamic rendering via JS -->
+                </div>
+
+                <a href="tel:02155913456" class="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                    <i class="fa-solid fa-phone text-sky-400"></i>
+                    <span>Office: <strong>(021) 5591 3456</strong></span>
+                </a>
+                <a id="headerWaBtn" href="https://wa.me/6281110339888?text=Halo%20Marketing%20Aeropolis,%20saya%20ingin%20menanyakan%20stok%20unit." target="_blank" class="flex items-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg transition font-medium">
+                    <i class="fa-brands fa-whatsapp text-lg"></i>
+                    <span>Sales Hotline: <strong>081110339888</strong></span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- DASHBOARD SUMMARY CARDS -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Unit</p>
+                    <h3 id="statTotal" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+                    <i class="fa-solid fa-cubes text-lg"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-emerald-600 uppercase tracking-wider">Available</p>
+                    <h3 id="statAvailable" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+                    <i class="fa-solid fa-circle-check text-lg"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-amber-600 uppercase tracking-wider">Reserved</p>
+                    <h3 id="statReserved" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
+                    <i class="fa-solid fa-clock text-lg"></i>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-medium text-rose-600 uppercase tracking-wider">Sold Out</p>
+                    <h3 id="statSold" class="text-2xl font-bold text-rose-600 mt-1">0</h3>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-600">
+                    <i class="fa-solid fa-house-lock text-lg"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- NAVIGATION TABS -->
+        <nav class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl px-4 pt-2 shadow-sm">
+            <button id="tabBtnUnits" onclick="switchTab('units')" class="tab-active py-3 px-5 text-sm font-medium focus:outline-none flex items-center gap-2">
+                <i class="fa-solid fa-list-check"></i> Daftar Stok Unit
+            </button>
+            <button id="tabBtnGrid" onclick="switchTab('grid')" class="py-3 px-5 text-sm font-medium text-slate-500 hover:text-slate-700 focus:outline-none flex items-center gap-2">
+                <i class="fa-solid fa-grip text-sky-600"></i> Visual Grid (Floor Matrix)
+            </button>
+            <button id="tabBtnAnalytics" onclick="switchTab('analytics')" class="py-3 px-5 text-sm font-medium text-slate-500 hover:text-slate-700 focus:outline-none flex items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-indigo-600"></i> Analytics & Grafik
+            </button>
+        </nav>
+
+        <!-- TAB 1: LIST & SEARCH TABLE -->
+        <div id="tabContentUnits" class="space-y-4">
+
+            <!-- FILTER & CONTROL PANEL -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-3 items-center justify-between">
+                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto flex-1">
+                    
+                    <!-- Search Input -->
+                    <div class="relative min-w-[200px] flex-1 md:flex-initial">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="filterSearch" oninput="applyFilters()" placeholder="Cari Kode Unit..." class="w-full pl-8 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+
+                    <!-- Filter Tower -->
+                    <select id="filterTower" onchange="onTowerFilterChange()" class="text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <option value="">-- Semua Projek / Tower --</option>
+                    </select>
+
+                    <!-- Filter Floor / Block -->
+                    <select id="filterFloor" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <option value="">-- Semua Lantai / Blok --</option>
+                    </select>
+
+                    <!-- Filter Status -->
+                    <select id="filterStatus" onchange="applyFilters()" class="text-xs border border-slate-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <option value="">-- Semua Status --</option>
+                        <option value="Available">Available</option>
+                        <option value="Reserved">Reserved</option>
+                        <option value="Sold">Sold</option>
+                    </select>
+
+                    <button onclick="resetFilters()" class="text-xs text-slate-500 hover:text-slate-800 px-2 py-2 underline">Reset</button>
+                </div>
+
+                <!-- ACTIONS BUTTONS -->
+                <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                    <button id="btnBulkDelete" onclick="confirmBulkDelete()" disabled class="bg-rose-100 hover:bg-rose-200 text-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium px-3 py-2 rounded-lg border border-rose-300 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash"></i> Hapus Terpilih (<span id="selectedCount">0</span>)
+                    </button>
+                    <button onclick="exportToCSV()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-2 rounded-lg border border-slate-300 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-csv text-emerald-600"></i> Export CSV
+                    </button>
+                    <button onclick="handleProtectedAction(() => openAddModal())" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> Tambah Unit
+                    </button>
+                </div>
+            </div>
+
+            <!-- TABLE -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 font-semibold">
+                            <tr>
+                                <th class="p-3 w-10 text-center">
+                                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" class="rounded text-brand-600 focus:ring-brand-500">
+                                </th>
+                                <th class="p-3">Kode Unit</th>
+                                <th class="p-3">Tower / Projek</th>
+                                <th class="p-3">Lantai / Blok</th>
+                                <th class="p-3">Tipe</th>
+                                <th class="p-3">Luas (LT / LB)</th>
+                                <th class="p-3">View / Spesifikasi</th>
+                                <th class="p-3">Harga (Rp)</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="unitTableBody" class="divide-y divide-slate-100">
+                            <!-- JS Dynamic Content -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Pagination / Info -->
+                <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+                    <div>Menampilkan <span id="showingCount" class="font-bold text-slate-700">0</span> unit</div>
+                    <div id="tableEmptyNotice" class="hidden text-rose-500 italic">Tidak ada data unit yang sesuai filter.</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TAB 2: VISUAL MATRIX FLOOR GRID -->
+        <div id="tabContentGrid" class="hidden space-y-4">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-4 justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <label class="text-xs font-medium text-slate-700">Pilih Projek / Tower Grid:</label>
+                    <select id="gridTowerSelect" onchange="renderGridMatrix()" class="text-xs border border-slate-300 rounded-lg px-3 py-1.5 bg-white font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <!-- Dynamic options -->
+                    </select>
+                </div>
+                <div class="flex items-center gap-4 text-xs">
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Available</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> Reserved</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> Sold</span>
+                </div>
+            </div>
+
+            <!-- GRID CONTAINER -->
+            <div id="gridMatrixContainer" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
+                <!-- Dynamic Grid Matrix per Floor/Block rendered here -->
+            </div>
+        </div>
+
+        <!-- TAB 3: ANALYTICS -->
+        <div id="tabContentAnalytics" class="hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Status Pie Chart -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-sky-600"></i> Persentase Status Stok
+                    </h3>
+                    <div class="relative h-64 w-full flex justify-center">
+                        <canvas id="statusPieChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tower Bar Chart -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-column text-indigo-600"></i> Stok Unit per Projek / Tower
+                    </h3>
+                    <div class="relative h-64 w-full">
+                        <canvas id="towerBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-6 mt-10 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p>&copy; 2026 Aeropolis Sales & Inventory Management System. All rights reserved.</p>
+            <p>Kantor Marketing: (021) 5591 3456 | Hotline Sales WA: 081110339888</p>
+        </div>
+    </footer>
+
+    <!-- MODAL: ADMIN LOGIN -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden">
+            <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-sm tracking-wide flex items-center gap-2">
+                    <i class="fa-solid fa-user-shield text-amber-400"></i> Autentikasi Admin
+                </h3>
+                <button onclick="closeLoginModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+            </div>
+            <form onsubmit="handleAdminLogin(event)" class="p-5 space-y-4">
+                <p class="text-xs text-slate-500">Tindakan ini memerlukan otoritas Admin. Silakan masukkan kredensial Anda.</p>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Username</label>
+                    <input type="text" id="loginUsername" required placeholder="Username" class="w-full text-xs p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full text-xs p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                </div>
+                <div id="loginError" class="text-xs text-rose-500 hidden font-medium flex items-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i> Username atau password salah!
+                </div>
+                <div class="pt-2 flex justify-end gap-2">
+                    <button type="button" onclick="closeLoginModal()" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">Batal</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm">Login Admin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD / EDIT UNIT -->
+    <div id="unitModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-900 text-white px-5 py-4 flex justify-between items-center">
+                <h3 id="modalTitle" class="font-bold text-sm tracking-wide">Form Unit Aeropolis</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+            </div>
+            
+            <form id="unitForm" onsubmit="saveUnit(event)" class="p-5 space-y-4 overflow-y-auto flex-1">
+                <input type="hidden" id="editOriginalId">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Unit <span class="text-rose-500">*</span></label>
+                        <input type="text" id="formUnitCode" required placeholder="Contoh: AR1-G-01" class="w-full text-xs p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none uppercase">
+                        <p id="codeError" class="text-[10px] text-rose-500 hidden mt-1">Kode unit sudah ada!</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Projek / Tower <span class="text-rose-500">*</span></label>
+                        <select id="formTower" required onchange="onModalTowerChange()" class="w-full text-xs p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label id="lblFormFloor" class="block text-xs font-semibold text-slate-700 mb-1">Lantai / Blok <span class="text-rose-500">*</span></label>
+                        <select id="formFloor" required class="w-full text-xs p-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Tipe Unit</label>
+                        <input type="text" id="formType" placeholder="Studio / 1BR / Gudang A" class="w-full text-xs p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Luas Tanah (LT m²)</label>
+                        <input type="number" id="formLT" step="0.1" placeholder="0" class="w-full text-xs p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Luas Bangunan (LB m²)</label>
+                        <input type="number" id="formLB" step="0.1" placeholder="0" class="w-full text-xs p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">View / Orientasi</label>
+                        <input type="text" id="formView" placeholder="City / Pool / Akses Kontainer" class="w-full text-xs p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Harga (Rp)</label>
+                        <input type="number" id="formPrice" placeholder="300000000" class="w-full text-xs p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Status Ketersediaan <span class="text-rose-500">*</span></label>
+                    <select id="formStatus" required class="w-full text-xs p-2 border border-slate-300 rounded-lg bg-white font-medium focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <option value="Available" class="text-emerald-600">Available (Tersedia)</option>
+                        <option value="Reserved" class="text-amber-600">Reserved (Dipesan)</option>
+                        <option value="Sold" class="text-rose-600">Sold (Terjual)</option>
+                    </select>
+                </div>
+
+                <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">Batal</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg shadow-sm">Simpan Unit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // 10 PROJECT / TOWER CONFIGURATIONS
+        const TOWER_CONFIGS = {
+            "AR1": { name: "Aeropolis Residence 1 (AR1)", floors: ["G", "UG", "1"] },
+            "AR2": { name: "Aeropolis Residence 2 (AR2)", floors: ["G", "UG", "1", "2", "3", "5", "6", "7"] },
+            "AR3-1": { name: "Aeropolis Residence 3 Twr-1 (AR3.AE-AW)", floors: ["G", "UG", "1", "2", "3", "5", "6", "7"] },
+            "AR3-3": { name: "Aeropolis Residence 3 Twr-3 (AR3.CE-CW)", floors: ["G", "UG", "1", "2", "3", "5", "6", "7"] },
+            "AR3-5": { name: "Aeropolis Residence 3 Twr-5 (AR3.DE-DW)", floors: ["G", "UG", "1", "2", "3", "5", "6", "7"] },
+            "ACR2": { name: "Aeropolis Crystal Residence 2 (ACR.2)", floors: ["G", "UG", "1", "2", "3", "5", "6", "7"] },
+            "ACR3": { name: "Aeropolis Crystal Residence 3 (ACR.3)", floors: ["G", "UG", "1", "2", "3", "5", "6", "7"] },
+            "ALR1": { name: "Aeropolis Lucent Residence 1 (ALR.1)", floors: ["G", "UG", "1", "2", "3", "5", "6", "7"] },
+            "ACP": { name: "Aeropolis Commercial Park (ACP - 105 Unit)", floors: ["G", "UG", "1"] },
+            "ATP": { name: "Aeropolis Techno Park (ATP - 12 Blok)", floors: ["A", "B", "C", "D", "E", "F", "G", "H", "I", "AA", "AB", "Kavling"] }
+        };
+
+        // DEFAULT MOCK DATA
+        const DEFAULT_UNITS_DATA = [
+            // AR1
+            { id: "AR1-G-01", code: "AR1-G-01", towerKey: "AR1", floor: "G", type: "Studio", lt: 24, lb: 24, view: "Garden", price: 280000000, status: "Available" },
+            { id: "AR1-G-02", code: "AR1-G-02", towerKey: "AR1", floor: "G", type: "Studio", lt: 24, lb: 24, view: "Garden", price: 280000000, status: "Reserved" },
+            { id: "AR1-UG-05", code: "AR1-UG-05", towerKey: "AR1", floor: "UG", type: "1BR", lt: 36, lb: 36, view: "Pool", price: 410000000, status: "Sold" },
+            { id: "AR1-1-10", code: "AR1-1-10", towerKey: "AR1", floor: "1", type: "Studio", lt: 24, lb: 24, view: "City", price: 295000000, status: "Available" },
+
+            // AR2
+            { id: "AR2-G-01", code: "AR2-G-01", towerKey: "AR2", floor: "G", type: "Studio Standard", lt: 22, lb: 22, view: "Courtyard", price: 265000000, status: "Available" },
+            { id: "AR2-1-08", code: "AR2-1-08", towerKey: "AR2", floor: "1", type: "Studio", lt: 22, lb: 22, view: "City View", price: 275000000, status: "Sold" },
+
+            // ACP (Commercial)
+            { id: "ACP-G-01", code: "ACP-G-01", towerKey: "ACP", floor: "G", type: "Ruko 3 Lantai", lt: 67.5, lb: 200, view: "Boulevard Utama", price: 1850000000, status: "Available" },
+            { id: "ACP-G-02", code: "ACP-G-02", towerKey: "ACP", floor: "G", type: "Ruko 3 Lantai", lt: 67.5, lb: 200, view: "Boulevard Utama", price: 1850000000, status: "Reserved" },
+
+            // ATP (Techno Park Warehouse & Kavling)
+            { id: "ATP-A-01", code: "ATP-A-01", towerKey: "ATP", floor: "A", type: "Gudang Standard", lt: 300, lb: 180, view: "Akses Kontainer 40ft", price: 3200000000, status: "Available" },
+            { id: "ATP-B-05", code: "ATP-B-05", towerKey: "ATP", floor: "B", type: "Gudang Multiguna", lt: 450, lb: 300, view: "Hook", price: 4600000000, status: "Sold" },
+            { id: "ATP-KAV-01", code: "ATP-KAV-01", towerKey: "ATP", floor: "Kavling", type: "Kavling Industri", lt: 1200, lb: 0, view: "Jalan Utama ATP", price: 7200000000, status: "Available" }
+        ];
+
+        // GLOBAL STATE
+        let unitsData = [];
+        let selectedUnitIds = new Set();
+        let pieChartInstance = null;
+        let barChartInstance = null;
+        let pendingProtectedCallback = null;
+
+        // INITIALIZATION
+        window.onload = function() {
+            loadUnitsFromStorage();
+            updateAuthHeaderUI();
+            populateDropdowns();
+            renderTable();
+            updateKPIs();
+            renderGridMatrix();
+            initCharts();
+        };
+
+        // STORAGE MANAGEMENT
+        function loadUnitsFromStorage() {
+            const saved = localStorage.getItem("aeropolis_units_data");
+            if (saved) {
+                try {
+                    unitsData = JSON.parse(saved);
+                } catch (e) {
+                    unitsData = [...DEFAULT_UNITS_DATA];
+                }
+            } else {
+                unitsData = [...DEFAULT_UNITS_DATA];
+                saveUnitsToStorage();
+            }
+        }
+
+        function saveUnitsToStorage() {
+            localStorage.setItem("aeropolis_units_data", JSON.stringify(unitsData));
+        }
+
+        // AUTHENTICATION LAYER
+        function isAdminLoggedIn() {
+            return localStorage.getItem("aeropolis_admin_auth") === "true";
+        }
+
+        function updateAuthHeaderUI() {
+            const container = document.getElementById("authStatusContainer");
+            if (isAdminLoggedIn()) {
+                container.innerHTML = `
+                    <div class="flex items-center gap-2 bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-lg">
+                        <i class="fa-solid fa-shield-halved text-amber-400"></i>
+                        <span>Admin Logged In</span>
+                        <button onclick="logoutAdmin()" title="Logout Admin" class="ml-1 text-slate-300 hover:text-white underline text-xs">(Logout)</button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <button onclick="openLoginModal()" class="flex items-center space-x-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+                        <i class="fa-solid fa-key text-amber-400"></i>
+                        <span>Login Admin</span>
+                    </button>
+                `;
+            }
+        }
+
+        function handleProtectedAction(callback) {
+            if (isAdminLoggedIn()) {
+                callback();
+            } else {
+                pendingProtectedCallback = callback;
+                openLoginModal();
+            }
+        }
+
+        function openLoginModal() {
+            document.getElementById("loginUsername").value = "";
+            document.getElementById("loginPassword").value = "";
+            document.getElementById("loginError").classList.add("hidden");
+            document.getElementById("loginModal").classList.remove("hidden");
+        }
+
+        function closeLoginModal() {
+            document.getElementById("loginModal").classList.add("hidden");
+            pendingProtectedCallback = null;
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById("loginUsername").value.trim();
+            const pass = document.getElementById("loginPassword").value.trim();
+
+            if (user === "Admin" && pass === "A3r0@321") {
+                localStorage.setItem("aeropolis_admin_auth", "true");
+                updateAuthHeaderUI();
+                closeLoginModal();
+                if (pendingProtectedCallback) {
+                    const cb = pendingProtectedCallback;
+                    pendingProtectedCallback = null;
+                    cb();
+                }
+            } else {
+                document.getElementById("loginError").classList.remove("hidden");
+            }
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem("aeropolis_admin_auth");
+            updateAuthHeaderUI();
+        }
+
+        // POPULATE DROPDOWNS
+        function populateDropdowns() {
+            const filterTower = document.getElementById("filterTower");
+            const gridTowerSelect = document.getElementById("gridTowerSelect");
+            const formTower = document.getElementById("formTower");
+
+            filterTower.innerHTML = '<option value="">-- Semua Projek / Tower --</option>';
+            gridTowerSelect.innerHTML = '';
+            formTower.innerHTML = '';
+
+            Object.keys(TOWER_CONFIGS).forEach(key => {
+                const conf = TOWER_CONFIGS[key];
+                filterTower.innerHTML += `<option value="${key}">${conf.name}</option>`;
+                gridTowerSelect.innerHTML += `<option value="${key}">${conf.name}</option>`;
+                formTower.innerHTML += `<option value="${key}">${conf.name}</option>`;
+            });
+
+            onTowerFilterChange();
+            onModalTowerChange();
+        }
+
+        // TOWER FILTER CHANGE
+        function onTowerFilterChange() {
+            const towerKey = document.getElementById("filterTower").value;
+            const filterFloor = document.getElementById("filterFloor");
+            filterFloor.innerHTML = '<option value="">-- Semua Lantai / Blok --</option>';
+
+            if (towerKey && TOWER_CONFIGS[towerKey]) {
+                TOWER_CONFIGS[towerKey].floors.forEach(f => {
+                    const label = towerKey === 'ATP' ? `Blok ${f}` : `Lantai ${f}`;
+                    filterFloor.innerHTML += `<option value="${f}">${label}</option>`;
+                });
+            }
+            applyFilters();
+        }
+
+        // MODAL TOWER CHANGE
+        function onModalTowerChange() {
+            const towerKey = document.getElementById("formTower").value;
+            const formFloor = document.getElementById("formFloor");
+            const lblFormFloor = document.getElementById("lblFormFloor");
+            formFloor.innerHTML = '';
+
+            if (towerKey === 'ATP') {
+                lblFormFloor.innerHTML = 'Blok / Area <span class="text-rose-500">*</span>';
+            } else {
+                lblFormFloor.innerHTML = 'Lantai <span class="text-rose-500">*</span>';
+            }
+
+            if (towerKey && TOWER_CONFIGS[towerKey]) {
+                TOWER_CONFIGS[towerKey].floors.forEach(f => {
+                    const label = towerKey === 'ATP' ? `Blok ${f}` : `Lantai ${f}`;
+                    formFloor.innerHTML += `<option value="${f}">${label}</option>`;
+                });
+            }
+        }
+
+        // FILTER & SEARCH
+        function getFilteredUnits() {
+            const search = document.getElementById("filterSearch").value.toLowerCase().trim();
+            const tower = document.getElementById("filterTower").value;
+            const floor = document.getElementById("filterFloor").value;
+            const status = document.getElementById("filterStatus").value;
+
+            return unitsData.filter(item => {
+                const matchSearch = !search || item.code.toLowerCase().includes(search) || (item.type && item.type.toLowerCase().includes(search));
+                const matchTower = !tower || item.towerKey === tower;
+                const matchFloor = !floor || item.floor === floor;
+                const matchStatus = !status || item.status === status;
+                return matchSearch && matchTower && matchFloor && matchStatus;
+            });
+        }
+
+        function applyFilters() {
+            renderTable();
+        }
+
+        function resetFilters() {
+            document.getElementById("filterSearch").value = "";
+            document.getElementById("filterTower").value = "";
+            document.getElementById("filterFloor").value = "";
+            document.getElementById("filterStatus").value = "";
+            onTowerFilterChange();
+        }
+
+        // RENDER TABLE
+        function renderTable() {
+            const filtered = getFilteredUnits();
+            const tbody = document.getElementById("unitTableBody");
+            const emptyNotice = document.getElementById("tableEmptyNotice");
+            tbody.innerHTML = "";
+
+            document.getElementById("showingCount").innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                emptyNotice.classList.remove("hidden");
+            } else {
+                emptyNotice.classList.add("hidden");
+            }
+
+            filtered.forEach(unit => {
+                const isChecked = selectedUnitIds.has(unit.id) ? "checked" : "";
+                
+                let statusBadge = "";
+                if(unit.status === "Available") {
+                    statusBadge = `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">Available</span>`;
+                } else if(unit.status === "Reserved") {
+                    statusBadge = `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-300">Reserved</span>`;
+                } else {
+                    statusBadge = `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-100 text-rose-800 border border-rose-300">Sold</span>`;
+                }
+
+                const formattedPrice = unit.price ? "Rp " + Number(unit.price).toLocaleString("id-ID") : "-";
+                const towerName = TOWER_CONFIGS[unit.towerKey] ? TOWER_CONFIGS[unit.towerKey].name : unit.towerKey;
+                const floorLabel = unit.towerKey === 'ATP' ? `Blok ${unit.floor}` : `Lantai ${unit.floor}`;
+
+                const waMessage = encodeURIComponent(`Halo Marketing Aeropolis, saya tertarik dengan unit ${unit.code} (${towerName}, ${floorLabel}). Apakah status masih ${unit.status}?`);
+                const waUrl = `https://wa.me/6281110339888?text=${waMessage}`;
+
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="p-3 text-center">
+                        <input type="checkbox" value="${unit.id}" ${isChecked} onchange="toggleSelectUnit('${unit.id}', this.checked)" class="rounded text-brand-600 focus:ring-brand-500">
+                    </td>
+                    <td class="p-3 font-bold text-slate-900">${unit.code}</td>
+                    <td class="p-3 text-slate-600">${towerName}</td>
+                    <td class="p-3 text-slate-600">${floorLabel}</td>
+                    <td class="p-3 text-slate-600">${unit.type || '-'}</td>
+                    <td class="p-3 text-slate-600">LT: ${unit.lt || 0}m² / LB: ${unit.lb || 0}m²</td>
+                    <td class="p-3 text-slate-600">${unit.view || '-'}</td>
+                    <td class="p-3 font-medium text-slate-800">${formattedPrice}</td>
+                    <td class="p-3 text-center">${statusBadge}</td>
+                    <td class="p-3 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <a href="${waUrl}" target="_blank" title="Chat Sales WA" class="text-emerald-600 hover:text-emerald-800 text-sm">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </a>
+                            <button onclick="handleProtectedAction(() => openEditModal('${unit.id}'))" title="Edit Unit" class="text-sky-600 hover:text-sky-800 text-sm">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="handleProtectedAction(() => deleteSingleUnit('${unit.id}'))" title="Hapus Unit" class="text-rose-600 hover:text-rose-800 text-sm">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            updateBulkDeleteButton();
+        }
+
+        // SELECTION LOGIC
+        function toggleSelectUnit(id, isChecked) {
+            if (isChecked) {
+                selectedUnitIds.add(id);
+            } else {
+                selectedUnitIds.delete(id);
+            }
+            updateBulkDeleteButton();
+        }
+
+        function toggleSelectAll(masterCheckbox) {
+            const filtered = getFilteredUnits();
+            if (masterCheckbox.checked) {
+                filtered.forEach(u => selectedUnitIds.add(u.id));
+            } else {
+                filtered.forEach(u => selectedUnitIds.delete(u.id));
+            }
+            renderTable();
+        }
+
+        function updateBulkDeleteButton() {
+            const btn = document.getElementById("btnBulkDelete");
+            const countSpan = document.getElementById("selectedCount");
+            countSpan.innerText = selectedUnitIds.size;
+            btn.disabled = selectedUnitIds.size === 0;
+        }
+
+        // DELETE ACTIONS
+        function deleteSingleUnit(id) {
+            const unit = unitsData.find(u => u.id === id);
+            if (!unit) return;
+            if (confirm(`Apakah Anda yakin ingin menghapus unit '${unit.code}'?`)) {
+                unitsData = unitsData.filter(u => u.id !== id);
+                selectedUnitIds.delete(id);
+                saveUnitsToStorage();
+                refreshAll();
+            }
+        }
+
+        function confirmBulkDelete() {
+            handleProtectedAction(() => {
+                if (selectedUnitIds.size === 0) return;
+                if (confirm(`Apakah Anda yakin ingin menghapus ${selectedUnitIds.size} unit yang terpilih?`)) {
+                    unitsData = unitsData.filter(u => !selectedUnitIds.has(u.id));
+                    selectedUnitIds.clear();
+                    document.getElementById("selectAllCheckbox").checked = false;
+                    saveUnitsToStorage();
+                    refreshAll();
+                }
+            });
+        }
+
+        // MODAL ADD / EDIT
+        function openAddModal() {
+            document.getElementById("modalTitle").innerText = "Tambah Unit Baru";
+            document.getElementById("editOriginalId").value = "";
+            document.getElementById("unitForm").reset();
+            document.getElementById("codeError").classList.add("hidden");
+            onModalTowerChange();
+            document.getElementById("unitModal").classList.remove("hidden");
+        }
+
+        function openEditModal(id) {
+            const unit = unitsData.find(u => u.id === id);
+            if (!unit) return;
+
+            document.getElementById("modalTitle").innerText = "Edit Detail Unit";
+            document.getElementById("editOriginalId").value = unit.id;
+            document.getElementById("formUnitCode").value = unit.code;
+            document.getElementById("formTower").value = unit.towerKey;
+            onModalTowerChange();
+            document.getElementById("formFloor").value = unit.floor;
+            document.getElementById("formType").value = unit.type || "";
+            document.getElementById("formLT").value = unit.lt || 0;
+            document.getElementById("formLB").value = unit.lb || 0;
+            document.getElementById("formView").value = unit.view || "";
+            document.getElementById("formPrice").value = unit.price || "";
+            document.getElementById("formStatus").value = unit.status;
+            document.getElementById("codeError").classList.add("hidden");
+
+            document.getElementById("unitModal").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("unitModal").classList.add("hidden");
+        }
+
+        function saveUnit(e) {
+            e.preventDefault();
+            const originalId = document.getElementById("editOriginalId").value;
+            const code = document.getElementById("formUnitCode").value.trim().toUpperCase();
+            const towerKey = document.getElementById("formTower").value;
+            const floor = document.getElementById("formFloor").value;
+            const type = document.getElementById("formType").value.trim();
+            const lt = parseFloat(document.getElementById("formLT").value) || 0;
+            const lb = parseFloat(document.getElementById("formLB").value) || 0;
+            const view = document.getElementById("formView").value.trim();
+            const price = parseFloat(document.getElementById("formPrice").value) || 0;
+            const status = document.getElementById("formStatus").value;
+
+            // Duplicate code validation
+            const isDuplicate = unitsData.some(u => u.code === code && u.id !== originalId);
+            if (isDuplicate) {
+                document.getElementById("codeError").classList.remove("hidden");
+                return;
+            }
+
+            if (originalId) {
+                const idx = unitsData.findIndex(u => u.id === originalId);
+                if (idx !== -1) {
+                    unitsData[idx] = { id: code, code, towerKey, floor, type, lt, lb, view, price, status };
+                }
+            } else {
+                unitsData.push({ id: code, code, towerKey, floor, type, lt, lb, view, price, status });
+            }
+
+            saveUnitsToStorage();
+            closeModal();
+            refreshAll();
+        }
+
+        // UPDATE KPIS
+        function updateKPIs() {
+            const total = unitsData.length;
+            const avail = unitsData.filter(u => u.status === "Available").length;
+            const res = unitsData.filter(u => u.status === "Reserved").length;
+            const sold = unitsData.filter(u => u.status === "Sold").length;
+
+            document.getElementById("statTotal").innerText = total;
+            document.getElementById("statAvailable").innerText = avail;
+            document.getElementById("statReserved").innerText = res;
+            document.getElementById("statSold").innerText = sold;
+        }
+
+        // VISUAL MATRIX FLOOR GRID
+        function renderGridMatrix() {
+            const towerKey = document.getElementById("gridTowerSelect").value || "AR1";
+            const container = document.getElementById("gridMatrixContainer");
+            container.innerHTML = "";
+
+            const towerConfig = TOWER_CONFIGS[towerKey];
+            if (!towerConfig) return;
+
+            towerConfig.floors.forEach(floor => {
+                const floorUnits = unitsData.filter(u => u.towerKey === towerKey && u.floor === floor);
+                const floorTitle = towerKey === 'ATP' ? `BLOK ${floor}` : `LANTAI ${floor}`;
+
+                const floorBox = document.createElement("div");
+                floorBox.className = "border border-slate-200 rounded-lg p-4 bg-slate-50/50";
+                
+                let gridItemsHTML = "";
+                if (floorUnits.length === 0) {
+                    gridItemsHTML = `<p class="text-xs text-slate-400 italic py-2">Belum ada unit yang terdaftar di ${floorTitle}.</p>`;
+                } else {
+                    gridItemsHTML = `<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 mt-3">`;
+                    floorUnits.forEach(u => {
+                        let bgColor = "bg-emerald-500 text-white hover:bg-emerald-600";
+                        if (u.status === "Reserved") bgColor = "bg-amber-500 text-white hover:bg-amber-600";
+                        if (u.status === "Sold") bgColor = "bg-rose-500 text-white hover:bg-rose-600";
+
+                        gridItemsHTML += `
+                            <button onclick="handleProtectedAction(() => openEditModal('${u.id}'))" title="${u.code} - ${u.status}" class="${bgColor} p-2 rounded-lg text-center font-bold text-xs shadow-sm transition flex flex-col items-center justify-center min-h-[50px]">
+                                <span>${u.code}</span>
+                                <span class="text-[10px] font-normal opacity-90">${u.type || '-'}</span>
+                            </button>
+                        `;
+                    });
+                    gridItemsHTML += `</div>`;
+                }
+
+                floorBox.innerHTML = `
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                        <h4 class="font-bold text-xs text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-layer-group text-brand-600"></i> ${floorTitle}
+                        </h4>
+                        <span class="text-[11px] text-slate-500">${floorUnits.length} Unit</span>
+                    </div>
+                    ${gridItemsHTML}
+                `;
+                container.appendChild(floorBox);
+            });
+        }
+
+        // CHARTS LOGIC
+        function initCharts() {
+            const pieCtx = document.getElementById("statusPieChart").getContext("2d");
+            const barCtx = document.getElementById("towerBarChart").getContext("2d");
+
+            pieChartInstance = new Chart(pieCtx, {
+                type: 'doughnut',
+                data: getPieData(),
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+
+            barChartInstance = new Chart(barCtx, {
+                type: 'bar',
+                data: getBarData(),
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function getPieData() {
+            const avail = unitsData.filter(u => u.status === "Available").length;
+            const res = unitsData.filter(u => u.status === "Reserved").length;
+            const sold = unitsData.filter(u => u.status === "Sold").length;
+
+            return {
+                labels: ['Available', 'Reserved', 'Sold'],
+                datasets: [{
+                    data: [avail, res, sold],
+                    backgroundColor: ['#10b981', '#f59e0b', '#f43f5e'],
+                }]
+            };
+        }
+
+        function getBarData() {
+            const labels = [];
+            const counts = [];
+
+            Object.keys(TOWER_CONFIGS).forEach(key => {
+                labels.push(key);
+                const count = unitsData.filter(u => u.towerKey === key).length;
+                counts.push(count);
+            });
+
+            return {
+                labels,
+                datasets: [{
+                    label: 'Jumlah Unit',
+                    data: counts,
+                    backgroundColor: '#0284c7'
+                }]
+            };
+        }
+
+        function updateCharts() {
+            if (pieChartInstance && barChartInstance) {
+                pieChartInstance.data = getPieData();
+                pieChartInstance.update();
+
+                barChartInstance.data = getBarData();
+                barChartInstance.update();
+            }
+        }
+
+        // EXPORT CSV
+        function exportToCSV() {
+            if (unitsData.length === 0) {
+                alert("Tidak ada data unit untuk di-export.");
+                return;
+            }
+
+            let csv = "Kode Unit,Tower/Projek,Lantai/Blok,Tipe,LT(m2),LB(m2),View,Harga(Rp),Status\n";
+            unitsData.forEach(u => {
+                const towerName = TOWER_CONFIGS[u.towerKey] ? TOWER_CONFIGS[u.towerKey].name.replace(/,/g, '') : u.towerKey;
+                csv += `"${u.code}","${towerName}","${u.floor}","${u.type || ''}",${u.lt || 0},${u.lb || 0},"${u.view || ''}",${u.price || 0},"${u.status}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Aeropolis_Stock_Report_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // TAB SWITCHING
+        function switchTab(tab) {
+            document.getElementById("tabContentUnits").classList.add("hidden");
+            document.getElementById("tabContentGrid").classList.add("hidden");
+            document.getElementById("tabContentAnalytics").classList.add("hidden");
+
+            document.getElementById("tabBtnUnits").className = "py-3 px-5 text-sm font-medium text-slate-500 hover:text-slate-700 focus:outline-none flex items-center gap-2";
+            document.getElementById("tabBtnGrid").className = "py-3 px-5 text-sm font-medium text-slate-500 hover:text-slate-700 focus:outline-none flex items-center gap-2";
+            document.getElementById("tabBtnAnalytics").className = "py-3 px-5 text-sm font-medium text-slate-500 hover:text-slate-700 focus:outline-none flex items-center gap-2";
+
+            if (tab === 'units') {
+                document.getElementById("tabContentUnits").classList.remove("hidden");
+                document.getElementById("tabBtnUnits").className = "tab-active py-3 px-5 text-sm font-medium focus:outline-none flex items-center gap-2";
+            } else if (tab === 'grid') {
+                document.getElementById("tabContentGrid").classList.remove("hidden");
+                document.getElementById("tabBtnGrid").className = "tab-active py-3 px-5 text-sm font-medium focus:outline-none flex items-center gap-2";
+                renderGridMatrix();
+            } else if (tab === 'analytics') {
+                document.getElementById("tabContentAnalytics").classList.remove("hidden");
+                document.getElementById("tabBtnAnalytics").className = "tab-active py-3 px-5 text-sm font-medium focus:outline-none flex items-center gap-2";
+                updateCharts();
+            }
+        }
+
+        // REFRESH ALL COMPONENTS
+        function refreshAll() {
+            renderTable();
+            updateKPIs();
+            renderGridMatrix();
+            updateCharts();
+        }
+    </script>
+</body>
+</html>
